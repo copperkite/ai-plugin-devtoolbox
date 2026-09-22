@@ -1,0 +1,13 @@
+{
+  "name": "bluewombat",
+  "owner": {
+    "name": "Tilap"
+  },
+  "plugins": [
+    {
+      "name": "ai-plugin-dev",
+      "source": "./",
+      "description": "Daily development skills: git workflow and intent-driven git operations, semantic versioning and releases, testing conventions, code wording and naming conventions, agent-first documentation maintenance."
+    }
+  ]
+}

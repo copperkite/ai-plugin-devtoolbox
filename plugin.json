@@ -1,0 +1,6 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-plugin-dev",
+  "version": "0.1.0",
+  "description": "Daily development skills: git workflow and intent-driven git operations, semantic versioning and releases, testing conventions, code wording and naming conventions, agent-first documentation maintenance."
+}

@@ -1,0 +1,64 @@
+# Documentation drift check.
+#
+# Destination: .github/workflows/docs-check.yml
+#
+# Runs the checker committed into this repository at scripts/docs-index.py. No
+# dependency on any agent tooling at run time — it works on any runner, in any
+# language ecosystem, with nothing but Python 3.
+#
+# Deliberately non-blocking on staleness: it reports, it does not fail the merge.
+# A documentation gate that blocks merges gets disabled within a month, and then
+# nothing is checked at all. Structural errors (broken links, an out-of-date
+# index, an ADR superseded by nothing) do fail — those are always the author's
+# to fix and take seconds.
+
+name: Documentation
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "*.md"
+      - "scripts/docs-index.py"
+  push:
+    branches: [main]
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: staleness compares last_verified against the last
+          # commit touching each document's `covers` globs. A shallow clone
+          # silently reports nothing.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Check documentation
+        run: |
+          python3 scripts/docs-index.py \
+            --project . --check
+
+      # Optional: surface presumed-stale documents in the job summary without
+      # failing. Remove if the run output is enough.
+      - name: Report stale documents
+        if: always()
+        run: |
+          python3 scripts/docs-index.py \
+            --project . --check --json > /tmp/docs.json || true
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          d = json.load(open("/tmp/docs.json"))
+          stale = d.get("presumed_stale", [])
+          print("## Documentation\n")
+          print(d.get("summary", ""), "\n")
+          if stale:
+              print("| Document | Days behind covered code |")
+              print("| -------- | ------------------------ |")
+              for s in stale:
+                  print(f"| `{s['file']}` | {s.get('days_behind', '?')} |")
+          PY
